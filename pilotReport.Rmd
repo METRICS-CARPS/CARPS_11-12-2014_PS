@@ -1,0 +1,125 @@
+---
+title: "CARPS Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+#### Article ID: 11-12-2014 PS
+#### Pilot 1: Michael Ko
+#### Co-pilot: Danielle Boles
+#### Start date: 10/27/17
+#### End date: 11/3/17
+
+-------
+
+#### Methods summary: 
+In study 1, 150 introductory psychology students were randomly assigned to a "real" or a "hypothetical" condition. In the real condition, participants believed that they would have a real opportuniy to connect with potential romantic partners. In the hypothetical condition, participants simply imagined that they are on a date. All participants were required to select their favorite profile and answer whether they were willing to exchange contact information. 
+
+------
+
+#### Target outcomes: 
+We next tested our primary hypothesis that participants would be
+more reluctant to reject the unattractive date when they
+believed the situation to be real rather than hypothetical.
+Only 10 of the 61 participants in the hypothetical condition
+chose to exchange contact information with the
+unattractive potential date (16%). In contrast, 26 of the
+71 participants in the real condition chose to exchange
+contact information (37%). A chi-square test of independence
+indicated that participants were significantly less
+likely to reject the unattractive potential date in the real
+condition compared with the hypothetical condition,
+X^2(1, N = 132) = 6.77, p = .009.
+
+------
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Step 1: Load packages
+
+```{r}
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(CARPSreports) # custom report functions
+library(broom)
+library(labelled)# converts SPSS's labelled to R's factor 
+```
+
+## Step 2: Load data
+
+```{r}
+# We are only looking into Study 1
+d <- read_sav('./data/Empathy Gap Study 1 data.sav')
+```
+
+## Step 3: Tidy data
+
+```{r}
+d_tidy <- d %>% select(condition, exchangeinfo)
+d_tidy$condition <- to_factor(d_tidy$condition)
+d_tidy$exchangeinfo <- to_factor(d_tidy$exchangeinfo)
+```
+
+## Step 4: Run analysis
+
+### Descriptive statistics
+
+We will first attempt to reproduce the number and percentage of participants who 
+exchange contact information in both conditions.
+
+> Only 10 of the 61 participants in the hypothetical condition
+chose to exchange contact information with the
+unattractive potential date (16%). In contrast, 26 of the
+71 participants in the real condition chose to exchange
+contact information (37%).
+
+```{r}
+kable(table(d_tidy$condition, d_tidy$exchangeinfo))
+
+mean <- d_tidy %>% group_by(condition) %>% summarise(mean = 1 - mean(as.numeric(exchangeinfo) - 1))
+kable(mean)
+```
+
+Looks exactly on point.
+
+### Inferential statistics
+
+Next we will try to reproduce the chi squared test examining significance of 
+conditional difference in exchacnging contact information.
+
+> A chi-square test of independence
+indicated that participants were significantly less
+likely to reject the unattractive potential date in the real
+condition compared with the hypothetical condition,
+X^2(1, N = 132) = 6.77, p = .009.
+
+```{r}
+test <- chisq.test(d_tidy$condition, d_tidy$exchangeinfo, correct = FALSE)
+kable(tidy(test))
+```
+
+Looks exactly on point.
+
+## Step 5: Conclusion
+
+```{r}
+carpsReport(Report_Type = 'pilot',
+          Article_ID = 'CARPS_11-12-2014_PS', 
+          Insufficient_Information_Errors = 0,
+          Decision_Errors = 0,
+          Major_Numerical_Errors = 0,
+          Time_to_Complete = 60, 
+          Author_Assistance = FALSE)
+```
+
+The final outcome was a success. Our findings yielded the same descriptive and inferrential statistics at the original paper.
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
