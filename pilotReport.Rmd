@@ -8,7 +8,7 @@ output:
 
 #### Article ID: 11-12-2014 PS
 #### Pilot 1: Michael Ko
-#### Co-pilot: Dannielle Boles
+#### Co-pilot: Danielle Boles
 #### Start date: 10/27/17
 #### End date: 11/3/17
 
@@ -16,8 +16,6 @@ output:
 
 #### Methods summary: 
 In study 1, 150 introductory psychology students were randomly assigned to a "real" or a "hypothetical" condition. In the real condition, participants believed that they would have a real opportuniy to connect with potential romantic partners. In the hypothetical condition, participants simply imagined that they are on a date. All participants were required to select their favorite profile and answer whether they were willing to exchange contact information. 
-
-
 
 ------
 
@@ -120,7 +118,7 @@ carpsReport(Report_Type = 'pilot',
           Author_Assistance = FALSE)
 ```
 
-The final outcome was a sucess. Our findings yielded the same descriptive and inferrential statistics at the original paper.
+The final outcome was a success. Our findings yielded the same descriptive and inferrential statistics at the original paper.
 
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()
