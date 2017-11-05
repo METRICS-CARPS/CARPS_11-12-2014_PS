@@ -120,7 +120,7 @@ carpsReport(Report_Type = 'pilot',
           Author_Assistance = FALSE)
 ```
 
-The final outcome was a sucess. Our findings yielded the same descriptiv and inferrential statistics at the original paper.
+The final outcome was a sucess. Our findings yielded the same descriptive and inferrential statistics at the original paper.
 
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()
