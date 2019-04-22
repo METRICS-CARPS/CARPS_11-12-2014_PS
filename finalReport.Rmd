@@ -1,0 +1,180 @@
+---
+title: "CARPS Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r}
+articleID <- "11-12-2014 PS" # insert the article ID code here e.g., "10-3-2015_PS"
+reportType <- 'final'
+pilotNames <- "Michael Ko, Danielle Boles" # insert the pilot's name here e.g., "Tom Hardwicke". If there are multiple pilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
+copilotNames <- "Tom Hardwicke" # insert the co-pilot's name here e.g., "Michael Frank". If there are multiple co-pilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
+pilotTTC <- 60 # insert the pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
+copilotTTC <- 20 # insert the co-pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
+pilotStartDate <- as.Date("10/27/17", format = "%m/%d/%y") # insert the pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+copilotStartDate <- as.Date("04/22/19", format = "%m/%d/%y") # insert the co-pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+completionDate <- as.Date("04/22/19", format = "%m/%d/%y") # copilot insert the date of final report completion (after any necessary rounds of author assistance) in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+```
+
+-------
+
+#### Methods summary: 
+In study 1, 150 introductory psychology students were randomly assigned to a "real" or a "hypothetical" condition. In the real condition, participants believed that they would have a real opportuniy to connect with potential romantic partners. In the hypothetical condition, participants simply imagined that they are on a date. All participants were required to select their favorite profile and answer whether they were willing to exchange contact information. 
+
+------
+
+#### Target outcomes: 
+>> We next tested our primary hypothesis that participants would be more reluctant to reject the unattractive date when they believed the situation to be real rather than hypothetical. Only 10 of the 61 participants in the hypothetical condition chose to exchange contact information with the unattractive potential date (16%). In contrast, 26 of the 71 participants in the real condition chose to exchange contact information (37%). A chi-square test of independence indicated that participants were significantly less likely to reject the unattractive potential date in the real condition compared with the hypothetical condition, X^2(1, N = 132) = 6.77, p = .009.
+
+------
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Step 1: Load packages
+
+```{r}
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(CARPSreports) # custom report functions
+library(broom)
+library(labelled)# converts SPSS's labelled to R's factor 
+```
+
+```{r}
+# Prepare report object. This will be updated automatically by the reproCheck function each time values are compared.
+reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = NA, valueType = NA, percentageError = NA, comparisonOutcome = NA, eyeballCheck = NA)
+```
+
+## Step 2: Load data
+
+```{r}
+# We are only looking into Study 1
+d <- read_sav('data/Empathy Gap Study 1 data.sav')
+```
+
+## Step 3: Tidy data
+
+```{r}
+d_tidy <- d %>% select(condition, exchangeinfo)
+d_tidy$condition <- to_factor(d_tidy$condition)
+d_tidy$exchangeinfo <- to_factor(d_tidy$exchangeinfo)
+```
+
+## Step 4: Run analysis
+
+### Descriptive statistics
+
+We will first attempt to reproduce the number and percentage of participants who  exchange contact information in both conditions.
+
+> Only 10 of the 61 participants in the hypothetical condition chose to exchange contact information with the unattractive potential date (16%). In contrast, 26 of the 71 participants in the real condition chose to exchange contact information (37%).
+
+```{r}
+thisTable <- table(d_tidy$condition, d_tidy$exchangeinfo)
+kable(thisTable)
+```
+
+Looks to be a match. Record:
+
+```{r}
+reportObject <- reproCheck(reportedValue = '10', obtainedValue = thisTable["hypothetical",]['yes'], valueType = 'n')
+
+reportObject <- reproCheck(reportedValue = '61', obtainedValue = sum(thisTable["hypothetical",]), valueType = 'n')
+
+reportObject <- reproCheck(reportedValue = '16', obtainedValue = thisTable["hypothetical",]['yes']/sum(thisTable["hypothetical",])*100, valueType = 'n')
+
+reportObject <- reproCheck(reportedValue = '26', obtainedValue = thisTable["real",]['yes'], valueType = 'n')
+
+reportObject <- reproCheck(reportedValue = '71', obtainedValue = sum(thisTable["real",]), valueType = 'n')
+
+reportObject <- reproCheck(reportedValue = '37', obtainedValue = thisTable["real",]['yes']/sum(thisTable["real",])*100, valueType = 'n')
+```
+
+### Inferential statistics
+
+Next we will try to reproduce the chi squared test examining significance of conditional difference in exchacnging contact information.
+
+> A chi-square test of independence indicated that participants were significantly less likely to reject the unattractive potential date in the real condition compared with the hypothetical condition, X^2(1, N = 132) = 6.77, p = .009.
+
+```{r}
+test <- chisq.test(d_tidy$condition, d_tidy$exchangeinfo, correct = FALSE)
+kable(tidy(test))
+```
+
+Looks like all values match. Report:
+
+```{r}
+reportObject <- reproCheck(reportedValue = '1', obtainedValue = test$parameter, valueType = 'df')
+
+reportObject <- reproCheck(reportedValue = '132', obtainedValue = length(d_tidy$condition), valueType = 'n')
+
+reportObject <- reproCheck(reportedValue = '6.77', obtainedValue = test$statistic, valueType = 'x2')
+
+reportObject <- reproCheck(reportedValue = '0.009', obtainedValue = test$p.value, valueType = 'p')
+```
+
+## Step 5: Conclusion
+
+The reproducibility check was a success. Our findings yielded the same descriptive and inferrential statistics as the original paper.
+
+```{r}
+Author_Assistance = FALSE # was author assistance provided? (if so, enter TRUE)
+
+Insufficient_Information_Errors <- 0 # how many discrete insufficient information issues did you encounter?
+
+# Assess the causal locus (discrete reproducibility issues) of any reproducibility errors. Note that there doesn't necessarily have to be a one-to-one correspondance between discrete reproducibility issues and reproducibility errors. For example, it could be that the original article neglects to mention that a Greenhouse-Geisser correct was applied to ANOVA outcomes. This might result in multiple reproducibility errors, but there is a single causal locus (discrete reproducibility issue).
+
+locus_typo <- NA # how many discrete issues did you encounter that related to typographical errors?
+locus_specification <- NA # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
+locus_analysis <- NA # how many discrete issues did you encounter that related to errors in the authors' original analyses?
+locus_data <- NA # how many discrete issues did you encounter that related to errors in the data files shared by the authors?
+locus_unidentified <- NA # how many discrete issues were there for which you could not identify the cause
+
+Affects_Conclusion <- NA # Do any reproducibility issues encounter appear to affect the conclusions made in the original article? This is a subjective judgement, but you should taking into account multiple factors, such as the presence/absence of decision errors, the number of target outcomes that could not be reproduced, the type of outcomes that could or could not be reproduced, the difference in magnitude of effect sizes, and the predictions of the specific hypothesis under scrutiny.
+```
+
+```{r}
+reportObject <- reportObject %>%
+  filter(dummyRow == FALSE) %>% # remove the dummy row
+  select(-dummyRow) %>% # remove dummy row designation
+  mutate(articleID = articleID) %>% # add the articleID 
+  select(articleID, everything()) # make articleID first column
+
+# decide on final outcome
+if(any(reportObject$comparisonOutcome != "MATCH") | Insufficient_Information_Errors > 0){
+  finalOutcome <- "Failure without author assistance"
+  if(Author_Assistance == T){
+    finalOutcome <- "Failure despite author assistance"
+  }
+}else{
+  finalOutcome <- "Success without author assistance"
+  if(Author_Assistance == T){
+    finalOutcome <- "Success with author assistance"
+  }
+}
+
+# collate report extra details
+reportExtras <- data.frame(articleID, pilotNames, copilotNames, pilotTTC, copilotTTC, pilotStartDate, copilotStartDate, completionDate, Author_Assistance, finalOutcome, Insufficient_Information_Errors, locus_typo, locus_specification, locus_analysis, locus_data, locus_unidentified)
+
+# save report objects
+if(reportType == "pilot"){
+  write_csv(reportObject, "pilotReportDetailed.csv")
+  write_csv(reportExtras, "pilotReportExtras.csv")
+}
+
+if(reportType == "final"){
+  write_csv(reportObject, "finalReportDetailed.csv")
+  write_csv(reportExtras, "finalReportExtras.csv")
+}
+```
+
+## Session information
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
